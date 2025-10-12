@@ -195,7 +195,7 @@ The **Apple Retail Sales Dashboard** provides and facilitates KPIs such as:
 - 📋 **Total Sales by Category**
 
 <br />
-<img alt="flowchart" src="/dashboard.png"/>
+<img alt="dashboard" src="/dashboard.png" />
 
 ### 🧾 KPI Reports  
 Exported analytical summaries as PDF reports (for reference):  
