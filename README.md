@@ -13,22 +13,24 @@
 
 ## 📑 Table of Contents
 - [📌 Project Overview](#-project-overview)
+  - [1. End-to-End Flow](#-end-to-end-flow)
+  - [2. Key Highlights](#-key-highlights)
 - [🎯 Objectives](#-objectives)
 - [📂 Project Structure](#-project-structure)
 - [🛠️ Tools & Technologies](#️-tools--technologies)
 - [📐 Data Architecture](#-data-architecture)
 - [⭐ Star Schema Design](#-star-schema-design)
 - [⚙️ Step-by-Step Implementation](#️-step-by-step-implementation)
-  - [1. Data Ingestion](#1-data-ingestion)
-  - [2. Storage Setup](#2-storage-setup)
-  - [3. Databricks Transformation](#3-databricks-transformation)
-  - [4. Synapse Integration](#4-synapse-integration)
-  - [5. Power BI Dashboard](#5-power-bi-dashboard)
-  - [6. Version Control](#6-version-control)
-- [📊 KPI Insights](#-kpi-insights)
+  - [1. Data Ingestion](#1-data-ingestion-azure-data-factory-)
+  - [2. Data Transformation](#2-data-transformation-azure-databricks-)
+  - [3. Data Warehouse](#3-data-warehouse-azure-synapse-analytics-)
+  - [4. Version Control (GitHub)](#4-version-control-github-)
+- [📊 Data Analytics](#-data-analytics-)
+  - [Synapse → Power BI Connection](#-synapse--power-bi-connection-)
+  - [Dashboard Insights](#-dashboard-insights-)
+  - [KPI Reports](#-kpi-reports-)
 - [✅ Key Outcomes](#-key-outcomes)
-- [📜 License](#-license)
-
+- [👨‍💻 Author](#-author-)
 ---
 
 ## 📌 Project Overview
@@ -38,7 +40,8 @@ The curated Gold Layer data is loaded into **Azure Synapse Analytics**, structur
 
 ### 🔁 End-to-End Flow
 
-**ADF (Ingestion)** ➜ **Databricks (Transformation)** ➜ **Synapse (Data Warehouse)** ➜ **Power BI (Visualization)**  
+**ADF (Ingestion)** ➜ **Databricks (Transformation)** ➜ **Synapse (Data Warehouse)** ➜ **Power BI (Visualization)** <br />
+<img alt="flowchart" src="/flowchart.png"/>
 
 ---
 
@@ -98,6 +101,8 @@ apple-retail-sales-analysis-data-engineering/
 │   ├── kpi_insight_query_cmds.sql
 │
 ├── README.md
+├── flowchart.png
+├── dashboard.png
 └── .gitignore
 ```
 ---
@@ -188,6 +193,9 @@ The **Apple Retail Sales Dashboard** provides and facilitates KPIs such as:
 - 📊 **Average Price by Category**  
 - 📅 **Annual Quarterly Revenues**  
 - 📋 **Total Sales by Category**
+
+<br />
+<img alt="flowchart" src="/dashboard.png"/>
 
 ### 🧾 KPI Reports  
 Exported analytical summaries as PDF reports (for reference):  
