@@ -1,0 +1,11 @@
+# Apple Retail v2 – pipeline dependencies
+# Install: pip install -r requirements.txt
+
+# Config
+pyyaml>=6.0
+
+# Spark + Delta (for ingestion and transformations)
+pyspark>=3.4.0
+delta-spark>=2.4.0
+
+# Data quality: run_checks.py uses only PySpark (no extra deps)
