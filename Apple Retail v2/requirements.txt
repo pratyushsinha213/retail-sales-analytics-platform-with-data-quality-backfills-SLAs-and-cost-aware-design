@@ -1,4 +1,0 @@
-pyspark
-delta-spark
-great-expectations
-pyyaml

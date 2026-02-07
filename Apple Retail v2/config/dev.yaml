@@ -1,7 +1,0 @@
-environment: dev
-storage_account: adls_dev
-container: apple-retail
-bronze_path: bronze/sales
-silver_path: silver/sales
-gold_path: gold/sales
-max_late_days: 7
