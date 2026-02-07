@@ -4,3 +4,6 @@ __pycache__/
 .vscode/
 .DS_Store
 .venv/
+terraform/.terraform*
+terraform/*.tfstate*
+terraform/terraform.tfvars
