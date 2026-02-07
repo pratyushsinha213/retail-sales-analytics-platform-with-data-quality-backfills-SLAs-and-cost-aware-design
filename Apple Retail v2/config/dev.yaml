@@ -1,0 +1,15 @@
+# Local development – data under ./data_lake, raw data from raw-data-source/
+environment: dev
+use_local_paths: true
+lake_base_path: ./data_lake
+
+# AWS (used when use_local_paths: false; set in prod)
+s3_bucket: null
+s3_prefix: ""
+region: us-east-1
+
+bronze_base: bronze
+silver_base: silver
+gold_base: gold
+raw_data_path: ./raw-data-source
+max_late_days: 7
