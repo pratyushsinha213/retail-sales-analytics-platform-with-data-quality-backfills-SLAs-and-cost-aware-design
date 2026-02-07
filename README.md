@@ -1,225 +1,264 @@
-# Retail Sales Analytics Platform with Data Quality, Backfills, SLAs, and Cost-Aware Design
+# Apple Retail v2
 
-![Azure](https://img.shields.io/badge/Azure-Cloud-blue?logo=microsoft-azure&style=flat-square)
+![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws&style=flat-square)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-purple?logo=terraform&style=flat-square)
 ![PySpark](https://img.shields.io/badge/PySpark-Big%20Data-orange?logo=apache-spark&style=flat-square)
-![Azure Data Factory](https://img.shields.io/badge/Azure-Data%20Factory-blue?logo=microsoft-azure&style=flat-square)
-![Azure Synapse](https://img.shields.io/badge/Azure-Synapse%20Analytics-blue?logo=microsoft-azure&style=flat-square)
+![AWS Glue](https://img.shields.io/badge/AWS-Glue-orange?logo=amazon-aws&style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.9+-yellow?logo=python&style=flat-square)
-![Databricks](https://img.shields.io/badge/Databricks-PySpark-red?logo=databricks&style=flat-square)
-![PowerBI](https://img.shields.io/badge/Power%20BI-Dashboard-orange?logo=power-bi&style=flat-square)
-![Git](https://img.shields.io/badge/Git-CI%2FCD-green?logo=git&style=flat-square)
 
 ---
 
-## 📑 Table of Contents
-- [📌 Project Overview](#-project-overview)
-  - [1. End-to-End Flow](#-end-to-end-flow)
-  - [2. Key Highlights](#-key-highlights)
-- [🎯 Objectives](#-objectives)
-- [📂 Project Structure](#-project-structure)
-- [🛠️ Tools & Technologies](#️-tools--technologies)
-- [📐 Data Architecture](#-data-architecture)
-- [⭐ Star Schema Design](#-star-schema-design)
-- [⚙️ Step-by-Step Implementation](#️-step-by-step-implementation)
-  - [1. Data Ingestion](#1-data-ingestion-azure-data-factory-)
-  - [2. Data Transformation](#2-data-transformation-azure-databricks-)
-  - [3. Data Warehouse](#3-data-warehouse-azure-synapse-analytics-)
-  - [4. Version Control (GitHub)](#4-version-control-github-)
-- [📊 Data Analytics](#-data-analytics-)
-  - [Synapse → Power BI Connection](#-synapse--power-bi-connection-)
-  - [Dashboard Insights](#-dashboard-insights-)
-  - [KPI Reports](#-kpi-reports-)
-- [✅ Key Outcomes](#-key-outcomes)
-- [👨‍💻 Author](#-author-)
----
+## Table of contents
 
-## 📌 Project Overview
-
-This project demonstrates an **end-to-end data engineering and analytics pipeline** for **Apple Retail Stores** using the **Microsoft Azure ecosystem**. The workflow begins with **Azure Data Factory (ADF)** ingesting raw retail data from multiple sources (mainly from GitHub) into **Azure Data Lake Storage**. The data is then transformed and enriched in **Azure Databricks (PySpark)** through a **Bronze–Silver–Gold architecture**, ensuring data quality, consistency, and scalability.  
-The curated Gold Layer data is loaded into **Azure Synapse Analytics**, structured in a **Star Schema** format optimized for analytical queries. Finally, the data is connected to **Power BI** to create interactive dashboards that visualize key business insights such as sales performance, product profitability, and store-level metrics across regions.
-
-### 🔁 End-to-End Flow
-
-**ADF (Ingestion)** ➜ **Databricks (Transformation)** ➜ **Synapse (Data Warehouse)** ➜ **Power BI (Visualization)** <br />
-<img alt="flowchart" src="/flowchart.png"/>
+- [Project overview](#-project-overview)
+  - [End-to-end flow](#-end-to-end-flow)
+  - [Key highlights](#-key-highlights)
+- [Objectives](#-objectives)
+- [Project structure](#-project-structure)
+- [Tools & technologies](#-tools--technologies)
+- [Data architecture](#-data-architecture)
+- [Star schema design](#-star-schema-design)
+- [Run pipeline (local)](#-run-pipeline-local)
+- [Test config and paths](#-how-to-test-config--paths)
+- [Check layer contents](#-check-layer-contents-bronze-silver-gold)
+- [Data quality checks](#-data-quality-checks)
+- [Run on AWS (Glue)](#-run-on-aws-glue)
+- [Data analytics](#-data-analytics)
+- [Key outcomes](#-key-outcomes)
+- [Author](#-author)
 
 ---
 
-### 🧠 Key Highlights
-- **Automated ingestion** using ADF pipelines for raw sales, product, and store data.  
-- **Data transformation** using PySpark notebooks in Databricks following the **Bronze–Silver–Gold** model.  
-- **Centralized data warehouse** in Synapse Analytics for efficient querying.  
-- **KPI dashboards** in Power BI showcasing business insights and performance trends.  
+## Project overview
+
+This project is an **end-to-end data engineering pipeline** for **Apple Retail** sales data. The workflow is driven by **Terraform** (AWS S3, IAM, Glue Catalog, Glue Job). Raw CSVs are ingested into a **Bronze** layer, then transformed through **Silver** (cleaned, validated) and **Gold** (star schema) in **PySpark**—run **locally** (Parquet under `./data_lake`) or on **AWS Glue** (S3 + Delta). Built-in **data quality checks** validate Silver and Gold. The Gold layer is ready for analytics and BI (e.g. Power BI, Athena, or custom KPI reports).
+
+### End-to-end flow
+
+**Terraform (provision)** → **Ingestion (CSV → Bronze)** → **Silver (clean/validate)** → **Gold (star schema)** → **DQ checks** → **Optional: Glue (AWS) / BI (reports, dashboards)**
+
+### Key highlights
+
+- **Single entrypoint locally:** `main.py` runs ingest → silver → gold → DQ in one command.
+- **Dual run modes:** Local (Parquet, `./data_lake`) or AWS (S3 + Delta via Glue).
+- **Config-driven:** `config/dev.yaml` and `config/prod.yaml`; Glue uses env vars (no YAML in S3).
+- **Bronze–Silver–Gold** with star schema in Gold (`fact_sales`, `dim_category`, `dim_product`, `dim_store`).
+- **Spark-based data quality** checks (no Great Expectations); optional `--fail-dq` for CI.
 
 ---
 
-## 🎯 Objectives
-- Ingest raw data from GitHub via **Azure Data Factory (ADF)**
-- Process retail sales data to analyze **product, category, and store performance**.  
-- Design a **bronze–silver–gold layered architecture** in **Azure Data Lake**.  
-- Build a **star schema** optimized for analytical queries.  
-- Create **business KPIs** using **Synapse SQL** views and **Power BI**.  
-- Implement **reproducible and scalable** data engineering practices.
+## Objectives
+
+- Ingest raw retail data (category, products, sales, stores, warranty) from **raw-data-source** into a data lake.
+- Implement a **bronze–silver–gold** layered architecture (local Parquet or AWS S3/Delta).
+- Build a **star schema** in Gold optimized for analytical queries and KPIs.
+- Run the pipeline **locally** via `main.py` or **on AWS** via a Glue job (Terraform-managed).
+- Apply **reproducible, config-driven** practices with optional data quality gates.
 
 ---
 
-## 📂 Project Structure
-```plaintext
-apple-retail-sales-analysis-data-engineering/
-│
-├── databricks-notebooks/
-│   ├── bronze_layer.ipynb
-│   ├── silver_layer.ipynb
-│   └── gold_layer.ipynb
-│
-│── kpi/
-│   ├── reports/
-│       ├── avg_price_by_category.pdf
-│       ├── top_10_best_selling_products.pdf
-│       ├── total_sales_by_category.pdf
-│       ├── total_sales_by_country.pdf
-│       ├── total_sales_revenue.pdf
-│       └── total_yearly_revenue.pdf
-│   ├── raw_pbix_kpi_files/
-│       ├── avg_price_by_category.pbix
-│       ├── top_10_best_selling_products.pbix
-│       ├── total_sales_by_category.pbix
-│       ├── total_sales_by_country.pbix
-│       ├── total_sales_revenue.pbix
-│       └── total_yearly_revenue.pbix
-│   ├── KPI_Summary.md
-│
+## Project structure
+
+```text
+Apple Retail and Sales Analysis/
+├── main.py                 # Local pipeline entrypoint (ingest → silver → gold → DQ)
+├── requirements.txt
+├── config/
+│   ├── dev.yaml            # Local paths, ./data_lake, raw-data-source
+│   └── prod.yaml           # S3 bucket, prefix, region
 ├── raw-data-source/
 │   ├── category.csv
 │   ├── products.csv
 │   ├── sales.csv
 │   ├── stores.csv
 │   └── warranty.csv
-│
-├── sql-queries/
-│   ├── ddl_commands.sql
-│   ├── kpi_insight_query_cmds.sql
-│
-├── README.md
-├── flowchart.png
-├── dashboard.png
-└── .gitignore
+├── utils/
+│   ├── config_loader.py    # YAML (local) or env (Glue)
+│   └── path_utils.py       # Layer + raw paths (local or s3://)
+├── ingestion/
+│   └── ingest_raw.py       # CSVs → Bronze (Parquet local, Delta on AWS)
+├── transformations/
+│   ├── bronze_to_silver.py # Clean, validate, standardize
+│   └── silver_to_gold.py   # Star schema: fact_sales + dim_*
+├── data_quality/
+│   └── run_checks.py       # Silver + Gold checks (Spark-only)
+├── scripts/
+│   ├── test_config_and_paths.py
+│   ├── check_bronze.py
+│   ├── check_silver.py
+│   └── check_gold.py
+├── glue/
+│   ├── glue_pipeline.py    # Glue job entrypoint (ingest → silver → gold → DQ)
+│   └── README.md           # Upload instructions for S3 + app.zip
+├── terraform/              # S3, IAM, Glue Catalog DB, Glue Job (pratyush_* naming)
+├── kpi/                    # Optional: reports and Power BI sources from Gold
+│   ├── reports/
+│   └── raw_pbix_kpi_files/
+└── README.md
 ```
----
-
-## 🛠️ Tools & Technologies  
-
-- **Azure Data Factory (ADF)** – Orchestrates data ingestion and pipeline scheduling  
-- **Azure Databricks** – PySpark-based ETL and transformation workflows  
-- **Azure Data Lake Storage (ADLS)** – Stores raw (Bronze), cleaned (Silver), and curated (Gold) datasets  
-- **Azure Synapse Analytics (SQL Pool)** – Serves as the enterprise data warehouse for analytics  
-- **Power BI** – Business intelligence dashboarding and KPI visualization.  
-- **Python 3.9+** – Core programming for ETL logic and transformation scripts  
-- **Git** – Version control and collaboration  
 
 ---
 
-## 📐 Data Architecture  
+## Tools & technologies
 
-The pipeline follows a **multi-layered architecture** to ensure scalability, maintainability, and data quality:  
-
-### 🟤 Bronze Layer  
-- Stores **raw CSV data** from retail sources in **Azure Data Lake (ADLS Gen2)**.  
-- Acts as the immutable source of truth for all further transformations.  
-
-### ⚪ Silver Layer  
-- Performs **data cleaning, validation, and standardization** in Azure Databricks.  
-- Handles schema corrections, null removal, and type casting.  
-
-### 🟡 Gold Layer  
-- Contains **aggregated and transformed data** optimized for analytics and BI.  
-- Stored in **Azure Synapse SQL Pool** following a **Star Schema** model.  
+- **AWS (S3, Glue, IAM)** – Data lake storage, serverless ETL job, catalog.
+- **Terraform** – Infrastructure as code for bucket, Glue job, and permissions.
+- **PySpark** – Ingestion and transformations (local or Glue workers).
+- **Parquet / Delta** – Local: Parquet under `./data_lake`; AWS: Delta on S3.
+- **Python 3.9+** – Config, path utils, and pipeline modules.
+- **YAML + env** – Config: `config/*.yaml` locally; Glue uses `AWS_S3_BUCKET`, `USE_LOCAL_PATHS=false`, etc.
 
 ---
 
-## ⭐ Star Schema Design  
+## Data architecture
 
-The **Gold Layer** in **Azure Synapse** is structured for efficient analytical querying and KPI generation.  
+The pipeline uses a **multi-layered architecture** for clarity and maintainability:
 
-**Fact Table:**  
-- `FactSales` – Contains sales transactions, revenue, quantity, warranty claims, and product/store references (Surrogate Keys).  
+### Bronze layer
 
-**Dimension Tables:**  
-- `DimProduct` – Product details (product name, price, launch date).  
-- `DimCategory` – Category details of various products.  
-- `DimStore` – Store location, country, and region details.
+- **Raw data** from CSVs (local: `raw-data-source/`; AWS: `s3://bucket/prefix/raw/`).
+- Written as **Parquet** (local) or **Delta** (AWS). Immutable source of truth for downstream steps.
 
----
+### Silver layer
 
-## ⚙️ Step-by-Step Implementation  
+- **Cleaned and validated** in PySpark: schema fixes, null handling, type casting, renames.
+- Same five entities: category, products, sales, stores, warranty. Stored in `silver/` (Parquet or Delta).
 
-### 1. **Data Ingestion (Azure Data Factory)**  
-- Configured **ADF pipelines** to import CSV product, sales, stores, warranty, and category data from Github source into **Azure Data Lake (Bronze Layer)**.  
-- Scheduled pipelines for periodic refresh.  
+### Gold layer
 
-### 2. **Data Transformation (Azure Databricks)**  
-- Connected ADF to Databricks for automated job triggers.  
-- Created PySpark notebooks to:  
-  - Read raw data from the Bronze layer.  
-  - Clean and validate schema like handled mismatched data types like `launch_date` as well as handle any null values that were present within the tables.  
-  - Generate Fact and Dimension tables.  
-  - Write curated Delta tables to the **Gold Layer** in ADLS.  
-
-### 3. **Data Warehouse (Azure Synapse Analytics)**  
-- Created **external tables** in Synapse mapped to Delta files in ADLS Gold.  
-- Defined **views for KPIs** such as total revenue, top products, and country-wise sales.  
-- Enabled **Power BI connectivity** using the Synapse SQL endpoint.  
-
-### 4. **Version Control (GitHub)**  
-- Managed notebooks, SQL scripts, and transformation code in a **Git repository**.  
-- Used separate branches for development and production.  
+- **Curated analytics layer** in **star schema**: one fact table and three dimension tables.
+- Stored in `gold/` (Parquet or Delta), ready for BI and SQL analytics.
 
 ---
 
-## 📊 Data Analytics  
+## Star schema design
 
-Once the Gold Layer tables were ready, **Azure Synapse SQL Pool** served as the source for analytical queries and Power BI dashboards.  
+**Fact table**
 
-### 🔗 Synapse → Power BI Connection  
-- Established a **Direct SQL Connection** between Synapse and Power BI Service (as Power BI Desktop is unavailable on macOS).  
-- Imported Fact and Dimension tables into Power BI datasets.  
-- Created relationships to preserve the **Star Schema model**.  
+- **fact_sales** – Sales transactions with quantity, revenue, product/store/category references (surrogate keys), and `has_claim` from warranty.
 
-### 📈 Dashboard Insights  
-The **Apple Retail Sales Dashboard** provides and facilitates KPIs such as:  
-- 💰 **Total Sales Revenue**  
-- 🏆 **Top 10 Best-Selling Products**
-- 🌍 **Total Sales by Country**  
-- 📊 **Average Price by Category**  
-- 📅 **Annual Quarterly Revenues**  
-- 📋 **Total Sales by Category**
+**Dimension tables**
 
-<br />
-<img alt="dashboard" src="/dashboard.png" />
-
-### 🧾 KPI Reports  
-Exported analytical summaries as PDF reports (for reference):  
-- `kpi/reports/avg_price_by_category.pdf`  
-- `kpi/reports/top_10_best_selling_products.pdf`  
-- `kpi/reports/total_sales_by_category.pdf`  
-- `kpi/reports/total_sales_by_country.pdf`  
-- `kpi/reports/total_sales_revenue.pdf`  
-- `kpi/reports/total_yearly_revenue.pdf`  
+- **dim_category** – Category attributes.
+- **dim_product** – Product name, price, launch date, category key.
+- **dim_store** – Store location, country, region.
 
 ---
 
-## ✅ Key Outcomes  
+## Run pipeline (local)
 
-- **End-to-End Azure Pipeline:** From ingestion → transformation → warehousing → analytics.  
-- **Modular Architecture:** Clear separation between Bronze, Silver, and Gold data layers.  
-- **Business Insights:** Identified top-performing products, profitable categories, and regional sales trends.  
-- **Portfolio Value:** Demonstrates expertise across **ADF, Databricks, Synapse, and Power BI**.  
+From **project root** (venv activated, `pip install -r requirements.txt`):
 
+**Single entrypoint (recommended):**
 
+```bash
+python main.py --env dev
+# Optional: --skip-dq to skip data quality, --fail-dq to exit 1 if DQ fails
+```
+
+**Step by step:**
+
+```bash
+# 1. Ingest raw CSVs → Bronze (Parquet under ./data_lake/bronze/)
+python3 -m ingestion.ingest_raw --env dev
+
+# 2. Bronze → Silver (clean dates, nulls, renames → ./data_lake/silver/)
+python3 -m transformations.bronze_to_silver --env dev
+
+# 3. Silver → Gold (star schema: fact_sales + dim_* → ./data_lake/gold/)
+python3 -m transformations.silver_to_gold --env dev
+```
+
+Gold outputs: `dim_category`, `dim_product`, `dim_store`, `fact_sales` (revenue, has_claim from warranty).
 
 ---
 
-### 👨‍💻 Author  
+## How to test (config + paths)
+
+From **project root**:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# Test dev config and paths (local paths, raw-data-source)
+python3 scripts/test_config_and_paths.py --env dev
+
+# Test prod config and paths (S3 paths)
+python3 scripts/test_config_and_paths.py --env prod
+```
+
+You should see project root, config values, layer paths (bronze/silver/gold), and raw CSV paths. For `dev`, it also prints whether each raw CSV exists.
+
+---
+
+## Check layer contents (Bronze, Silver, Gold)
+
+After running the pipeline, inspect each layer (row counts, schema, sample rows, null counts on keys). The Gold script also runs a quick referential check (fact keys present in dims).
+
+```bash
+python3 scripts/check_bronze.py --env dev
+python3 scripts/check_silver.py --env dev
+python3 scripts/check_gold.py --env dev
+```
+
+---
+
+## Data quality checks
+
+Simple Spark-based checks (no Great Expectations). Run after the pipeline:
+
+```bash
+# Silver + Gold (default)
+python -m data_quality.run_checks --env dev
+
+# Silver only or Gold only
+python -m data_quality.run_checks --env dev --layer silver
+python -m data_quality.run_checks --env dev --layer gold
+
+# Exit with code 1 if any check fails (e.g. for CI)
+python -m data_quality.run_checks --env dev --fail
+```
+
+**Silver:** row count > 0, no nulls on primary keys, sales quantity ≥ 1.  
+**Gold:** fact_sales row count > 0, no nulls on keys/revenue, revenue ≥ 0, has_claim in {0,1}, referential (fact keys exist in dims). Prints **PASS** or **FAIL** with a list of failed checks.
+
+---
+
+## Run on AWS (Glue)
+
+1. **Terraform** – Deploy S3, IAM, Glue job (see `terraform/`).
+2. **Upload script and code** – Put `glue/glue_pipeline.py` and `app.zip` (contents: `config`, `utils`, `ingestion`, `transformations`, `data_quality`) in the S3 path used by the Glue job (`--script_location` and `--extra-py-files`).
+3. **Upload raw data** – CSVs from `raw-data-source/` to `s3://<bucket>/<prefix>/raw/`.
+4. **Run the Glue job** – Console or `aws glue start-job-run --job-name pratyush_pipeline_<region>_job`.
+
+Details: **glue/README.md**.
+
+---
+
+## Data analytics
+
+The **Gold layer** is structured for efficient analytical querying and KPI generation. You can:
+
+- **Query Gold** with Athena, Spark SQL, or any SQL-on-Parquet/Delta tool.
+- **Connect BI tools** (e.g. Power BI) to Gold tables for dashboards (total revenue, top products, sales by country/category, etc.).
+- **Use existing KPI assets** in `kpi/` (reports and `.pbix` files) as references; re-point them to your Gold output (local or S3) as needed.
+
+---
+
+## Key outcomes
+
+- **End-to-end pipeline:** Terraform → ingestion → Bronze → Silver → Gold → DQ, with one local entrypoint (`main.py`) and one AWS entrypoint (Glue).
+- **Dual execution:** Same code runs locally (Parquet) or on AWS (Delta) via config/env.
+- **Modular architecture:** Clear separation of Bronze, Silver, and Gold; star schema in Gold.
+- **Data quality:** Built-in Spark checks; optional fail-on-error for CI.
+- **Portfolio value:** Demonstrates AWS (S3, Glue), Terraform, PySpark, and config-driven data engineering.
+
+---
+
+## Author
+
 **Pratyush Sinha**  
-📧 Email: **pratisinha@gmail.com**  
-🔗 LinkedIn: [linkedin.com/pratyushsinha](https://linkedin.com/in/pratyushsinha213)  
+📧 **pratisinha@gmail.com**  
+🔗 [LinkedIn](https://linkedin.com/in/pratyushsinha213)
