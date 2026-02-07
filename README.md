@@ -1,4 +1,4 @@
-# Apple Retail v2
+# Retail Sales Analytics Platform with Data Quality, Backfills, SLAs, and Cost-Aware Design
 
 ![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazon-aws&style=flat-square)
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-purple?logo=terraform&style=flat-square)
