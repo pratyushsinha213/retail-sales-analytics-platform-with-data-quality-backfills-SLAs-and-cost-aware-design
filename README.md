@@ -1,4 +1,4 @@
-# Apple Retail Sales Analytics on Azure
+# Retail Sales Analytics Platform with Data Quality, Backfills, SLAs, and Cost-Aware Design
 
 ![Azure](https://img.shields.io/badge/Azure-Cloud-blue?logo=microsoft-azure&style=flat-square)
 ![PySpark](https://img.shields.io/badge/PySpark-Big%20Data-orange?logo=apache-spark&style=flat-square)
