@@ -1,0 +1,14 @@
+# AWS (prod) – set s3_bucket to Terraform output pratyush_s3_bucket_id
+environment: prod
+use_local_paths: false
+lake_base_path: null
+
+s3_bucket: pratyush-datalake-us-east-1-dev-123456789012
+s3_prefix: prod
+region: us-east-1
+
+bronze_base: bronze
+silver_base: silver
+gold_base: gold
+raw_data_path: null
+max_late_days: 7

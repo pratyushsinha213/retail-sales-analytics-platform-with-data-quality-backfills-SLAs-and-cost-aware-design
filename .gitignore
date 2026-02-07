@@ -1,1 +1,11 @@
-/main.ipynb
+__pycache__/
+*.pyc
+.env
+.vscode/
+.DS_Store
+.venv/
+terraform/.terraform*
+terraform/*.tfstate*
+terraform/terraform.tfvars
+data_lake/
+apple v1/
